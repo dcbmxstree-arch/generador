@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Informes Cognitivos - Multiestudios</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-bottom: 80px;
+        }
+        .navbar-brand img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        .main-container {
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: none;
+        }
+        .card-header {
+            background: #003366;
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: bold;
+        }
+        .btn-generate {
+            background: #003366;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-generate:hover {
+            background: #001f4d;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-clear {
+            background: #dc3545;
+            color: white;
+            font-weight: bold;
+        }
+        .floating-whatsapp {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #25D366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .floating-whatsapp:hover {
+            background: #128C7E;
+            transform: scale(1.1);
+            color: white;
+        }
+        .footer-credits {
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #555;
+            background: rgba(255,255,255,0.8);
+            padding: 5px 0;
+        }
+        .footer-credits a {
+            color: #003366;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .output-area {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #003366;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .specialty-select {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #003366;">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap"></i> Multiestudios - Centro de Educación Continua
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container main-container">
+        <div class="row">
+            <!-- Form Column -->
+            <div class="col-lg-5 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-cogs"></i> Configuración del Informe
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="specialty" class="form-label fw-bold">Especialidad:</label>
+                            <select id="specialty" class="form-select specialty-select">
+                                <option value="Medicina General">Medicina General</option>
+                                <option value="Odontología">Odontología</option>
+                                <option value="Enfermería">Enfermería</option>
+                                <option value="Psicología">Psicología</option>
+                                <option value="Psicología Forense">Psicología Forense</option>
+                                <option value="Comunicación Social">Comunicación Social</option>
+                                <option value="Otra">Otra (especificar en prompt)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="casoPractico" class="form-label fw-bold">Caso Práctico:</label>
+                            <textarea id="casoPractico" class="form-control" rows="8" placeholder="Pega aquí el caso práctico..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="respuestaTecnica" class="form-label fw-bold">Respuesta Técnica:</label>
+                            <textarea id="respuestaTecnica" class="form-control" rows="8" placeholder="Pega aquí la respuesta técnica..."></textarea>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <button id="btnClear" class="btn btn-clear"><i class="fas fa-eraser"></i> Limpiar campos</button>
+                            <button id="btnGenerate" class="btn btn-generate"><i class="fas fa-file-alt"></i> Generar Informe Cognitivo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Output Column -->
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-brain"></i> Informe Cognitivo (LaTeX)</span>
+                        <div>
+                            <button id="btnCopy" class="btn btn-sm btn-light" title="Copiar al portapapeles"><i class="fas fa-copy"></i></button>
+                            <button id="btnDownload" class="btn btn-sm btn-light" title="Descargar .tex"><i class="fas fa-download"></i></button>
+                            <button id="btnOverleaf" class="btn btn-sm btn-light" title="Abrir en Overleaf"><i class="fas fa-external-link-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="loadingIndicator" style="display: none;" class="text-center">
+                            <div class="loader"></div>
+                            <p>Generando informe con DeepSeek...</p>
+                        </div>
+                        <div id="outputContainer" class="output-area" style="display: none;"></div>
+                        <div id="initialMessage" class="text-center text-muted p-5">
+                            <i class="fas fa-robot fa-3x mb-3"></i>
+                            <p>El informe aparecerá aquí una vez generado.</p>
+                            <p class="small">Asegúrate de haber llenado ambos campos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/593996328491" class="floating-whatsapp" target="_blank" title="Contáctanos por WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Footer Credits -->
+    <div class="footer-credits">
+        Powered by <a href="https://wa.me/593995324419" target="_blank" title="Contacto Physics">Physics</a> | Tel: 0995324419
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ============== CONSTANTES Y DATOS PRECARGADOS ==============
+        const specialtySelect = document.getElementById('specialty');
+        const casoPracticoTextarea = document.getElementById('casoPractico');
+        const respuestaTecnicaTextarea = document.getElementById('respuestaTecnica');
+        const btnGenerate = document.getElementById('btnGenerate');
+        const btnClear = document.getElementById('btnClear');
+        const btnCopy = document.getElementById('btnCopy');
+        const btnDownload = document.getElementById('btnDownload');
+        const btnOverleaf = document.getElementById('btnOverleaf');
+        const outputContainer = document.getElementById('outputContainer');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const initialMessage = document.getElementById('initialMessage');
+
+        // Caso predefinido de Medicina General
+        const defaultCase = `Contexto operacional: Durante un operativo de control en la Terminal Terrestre de Quitumbe, en Quito, a las 22:00 horas, se detiene a un varón de 45 años por presunto microtráfico. El detenido presenta agitación psicomotriz, lenguaje incoherente y refiere dolor torácico. El médico general de la Policía Nacional debe realizar la valoración clínica inicial en la celda de detención, garantizando la seguridad operativa del personal y aplicando principios de autogestión (por ejemplo, verificar el estado del equipo médico portátil antes de su uso). La anamnesis se dificulta por la alteración del detenido. Se debe registrar todo en la historia clínica forense.
+
+Preguntas:
+1. ¿Cuáles son los pasos esenciales de la anamnesis en un detenido con alteración del estado de conciencia, considerando la seguridad operativa del personal policial?
+2. Describa el examen físico prioritario que debe realizar el médico general en este contexto, incluyendo la evaluación de signos de intoxicación o patología aguda, y cómo la autogestión del equipamiento médico influye en la calidad de la atención.
+3. ¿Qué elementos debe contener el registro en la historia clínica forense del detenido, de acuerdo con la doctrina policial de seguridad operativa y autogestión?`;
+
+        const defaultAnswer = `1. Anamnesis: Ante la agitación, se debe priorizar la seguridad: solicitar apoyo de personal de seguridad, esposar al detenido si es necesario (según protocolo), y realizar la entrevista en un entorno controlado. Obtener datos de identificación del parte policial. Preguntar por antecedentes médicos (diabetes, hipertensión, epilepsia), consumo de sustancias (alcohol, drogas), y el dolor torácico (características, irradiación). Si el detenido no colabora, interrogar a los agentes que lo trasladaron. Aplicar el principio de autogestión revisando que el fonendoscopio y el tensiómetro estén operativos antes de iniciar.
+
+2. Examen físico: Realizar evaluación de signos vitales (presión arterial, frecuencia cardíaca, saturación de oxígeno, temperatura). Auscultación cardíaca y pulmonar para descartar arritmias o crepitantes. Palpación abdominal para descartar visceromegalias. Evaluar pupilas (tamaño, reactividad) y signos de intoxicación (nistagmo, diaforesis, temblor). La autogestión implica que el médico debe llevar un maletín con insumos básicos (tensiómetro, linterna, termómetro) y verificar su funcionamiento antes del operativo, según el plan de mantenimiento autónomo del servicio.
+
+3. Registro en historia clínica forense: Incluir fecha, hora, lugar, identificación del detenido y del médico actuante. Registrar la anamnesis (incluso si es limitada), hallazgos del examen físico, signos vitales, y la impresión diagnóstica (ej. probable intoxicación por sustancias, dolor torácico a descartar). Documentar las medidas de seguridad adoptadas (presencia de personal de seguridad, esposamiento). Anotar cualquier incidente operativo (ej. falta de insumos) para mejorar la autogestión. Finalizar con firma y sello. La historia clínica debe ser clara, objetiva y legible, y archivarse según la normativa de la Policía Nacional (consultar el manual de procedimientos del servicio médico policial).`;
+
+        // Cargar datos predeterminados al seleccionar Medicina General y al cargar la página
+        function loadDefaultCase() {
+            if (specialtySelect.value === 'Medicina General') {
+                casoPracticoTextarea.value = defaultCase;
+                respuestaTecnicaTextarea.value = defaultAnswer;
+            }
+        }
+
+        // Evento de cambio de especialidad: cargar caso si es Medicina General
+        specialtySelect.addEventListener('change', function() {
+            if (this.value === 'Medicina General') {
+                loadDefaultCase();
+            } else {
+                // Opcional: limpiar si se cambia a otra especialidad
+                // casoPracticoTextarea.value = '';
+                // respuestaTecnicaTextarea.value = '';
+            }
+        });
+
+        // Limpiar campos
+        btnClear.addEventListener('click', function() {
+            casoPracticoTextarea.value = '';
+            respuestaTecnicaTextarea.value = '';
+            outputContainer.style.display = 'none';
+            initialMessage.style.display = 'block';
+        });
+
+        // Copiar al portapapeles
+        btnCopy.addEventListener('click', function() {
+            const content = outputContainer.textContent;
+            if (content) {
+                navigator.clipboard.writeText(content).then(() => {
+                    alert('Código LaTeX copiado al portapapeles.');
+                }).catch(err => {
+                    alert('Error al copiar: ' + err);
+                });
+            }
+        });
+
+        // Descargar como archivo .tex
+        btnDownload.addEventListener('click', function() {
+            const content = outputContainer.textContent;
+            if (content) {
+                const blob = new Blob([content], {type: 'text/plain'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'informe_cognitivo.tex';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        });
+
+        // Abrir en Overleaf (usando el snip de URL)
+        btnOverleaf.addEventListener('click', function() {
+            const content = outputContainer.textContent;
+            if (content) {
+                // Codificar en base64 para URL de Overleaf (opción snip)
+                const base64 = btoa(unescape(encodeURIComponent(content)));
+                const overleafUrl = `https://www.overleaf.com/docs?snip=${base64}`;
+                window.open(overleafUrl, '_blank');
+            }
+        });
+
+        // ============== INTEGRACIÓN CON DEEPSEEK ==============
+        btnGenerate.addEventListener('click', async function() {
+            const caso = casoPracticoTextarea.value.trim();
+            const respuesta = respuestaTecnicaTextarea.value.trim();
+            const especialidad = specialtySelect.value;
+
+            if (!caso || !respuesta) {
+                alert('Por favor, completa tanto el Caso Práctico como la Respuesta Técnica.');
+                return;
+            }
+
+            // Mostrar loader, ocultar mensaje y output anterior
+            loadingIndicator.style.display = 'block';
+            outputContainer.style.display = 'none';
+            initialMessage.style.display = 'none';
+
+            // Construir el prompt del sistema y usuario
+            const systemPrompt = `Eres un tutor experto en preparación de aspirantes a especialistas de la Policía Nacional en el área de ${especialidad}. Tu tarea es generar un informe de proceso cognitivo profesional en formato LaTeX (listo para Overleaf) a partir de un caso práctico y su respuesta técnica.
+
+El informe debe:
+- Explicar cómo se llega a la respuesta técnica, haciendo visible el razonamiento clínico-operativo y la aplicación de la doctrina policial (seguridad operativa, autogestión, cadena de custodia, etc.).
+- Seguir EXACTAMENTE esta estructura:
+  1. DESCONSTRUCCIÓN DEL ESCENARIO (Identificación de variables críticas)
+  2. ACTIVACIÓN DE CONOCIMIENTOS PREVIOS (Marcos mentales necesarios)
+  3. RESOLUCIÓN PASO A PASO DE CADA PREGUNTA (Itinerario cognitivo)
+  4. JUSTIFICACIÓN COGNITIVA DE LA RESPUESTA TÉCNICA
+  5. LECCIONES APRENDIDAS Y ESQUEMA MENTAL TRANSFERIBLE
+- Incluir la respuesta técnica original en un recuadro o sección destacada dentro del informe (usando tcolorbox).
+- Usar lenguaje técnico-profesional pero claro, orientado a la formación.
+- El documento LaTeX debe ser completo, con preámbulo adecuado (clase article, paquetes: babel spanish, fontenc, inputenc, geometry, enumitem, tcolorbox, hyperref, etc.), y formato impecable.
+- Incluir en el título: "Informe de Proceso Cognitivo" y el área correspondiente.
+- **IMPORTANTE: No inventes leyes, normativas, procedimientos o datos que no estén explícitamente mencionados en el caso o en los principios doctrinales reconocidos de la Policía Nacional. Si no tienes certeza sobre algún punto, indícalo claramente o limítate a lo que proporciona el caso. Evita cualquier alucinación legal o normativa.**
+- No incluyas ningún comentario o texto fuera del documento LaTeX. Todo el contenido debe estar dentro del entorno LaTeX (de \\documentclass a \\end{document}).
+
+El caso práctico es:
+${caso}
+
+La respuesta técnica proporcionada es:
+${respuesta}
+
+Genera ahora el informe en LaTeX.`;
+
+            // NOTA: Para producción, aquí debes llamar a tu BACKEND que maneje la API key.
+            // Ejemplo de endpoint: 'https://tu-backend.com/generate'
+            // En este ejemplo, simularemos la llamada con un placeholder.
+            // Reemplaza esta URL por la de tu servicio seguro.
+            const API_ENDPOINT = 'https://tu-backend.com/api/generate'; // <-- CAMBIAR POR TU BACKEND
+
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 'Authorization': 'Bearer ' + token si usas autenticación propia
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',  // o el modelo que uses
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: 'Por favor genera el informe LaTeX.' }
+                        ],
+                        temperature: 0.3,
+                        max_tokens: 4000
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error en la API: ' + response.status);
+                }
+
+                const data = await response.json();
+                // Suponemos que el backend devuelve { content: "código LaTeX" }
+                // (o la estructura exacta de la respuesta de DeepSeek, ya formateada)
+                let latexCode = data.content || data.choices[0].message.content;
+
+                // Limpieza: a veces viene envuelto en ```latex ... ```
+                latexCode = latexCode.replace(/^```latex\s*/i, '').replace(/\s*```$/i, '');
+
+                outputContainer.textContent = latexCode;
+                outputContainer.style.display = 'block';
+            } catch (error) {
+                console.error(error);
+                alert('Ocurrió un error al generar el informe. Verifica la conexión y el backend.\nDetalle: ' + error.message);
+                initialMessage.style.display = 'block';
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        });
+
+        // Cargar caso predeterminado al inicio
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDefaultCase();
+        });
+    </script>
+</body>
+</html>
