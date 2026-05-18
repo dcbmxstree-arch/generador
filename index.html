@@ -207,7 +207,7 @@
     <script>
         // ==================== CONFIGURACIÓN ====================
         // ⚠️ SOLO PARA PRUEBAS: No usar en producción. La API key queda expuesta.
-        const DEEPSEEK_API_KEY = 'sk-044520a24cfe4709b946c01cf2a3dcf6'; // Reemplaza con tu clave real
+        const DEEPSEEK_API_KEY = 'TU_API_KEY_DEEPSEEK'; // Reemplaza con tu clave real
         const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 
         // ==================== ELEMENTOS DOM ====================
@@ -289,6 +289,16 @@ Preguntas:
             }
         });
 
+        // ==================== SANITIZACIÓN DE LATEX ====================
+        function sanitizeLatex(code) {
+            // Escapa _ que no estén precedidos por backslash (evita romper comandos como \_)
+            code = code.replace(/(?<!\\)_(?!\{)/g, '\\_');
+            // Escapa & si no es parte de un comando de alineación (muy básico)
+            code = code.replace(/(?<!\\)&/g, '\\&');
+            // También se podría escapar %, #, etc., pero con el prompt es suficiente
+            return code;
+        }
+
         // ==================== LLAMADA A DEEPSEEK (directa, SOLO PRUEBAS) ====================
         btnGenerate.addEventListener('click', async () => {
             const caso = casoPracticoTextarea.value.trim();
@@ -305,7 +315,7 @@ Preguntas:
             outputContainer.style.display = 'none';
             initialMessage.style.display = 'none';
 
-            // Construir prompt con instrucciones estrictas anti-alucinaciones
+            // Construir prompt con instrucciones estrictas anti-alucinaciones y escape de LaTeX
             const systemPrompt = `Eres un tutor experto en preparación de aspirantes a especialistas de la Policía Nacional en el área de ${especialidad}. Tu tarea es generar un informe de proceso cognitivo profesional en formato LaTeX (listo para Overleaf) a partir de un caso práctico y su respuesta técnica.
 
 El informe debe:
@@ -321,6 +331,9 @@ El informe debe:
 - El documento LaTeX debe ser completo, con preámbulo adecuado (clase article, paquetes: babel spanish, fontenc, inputenc, geometry, enumitem, tcolorbox, hyperref, etc.), y formato impecable.
 - Incluir en el título: "Informe de Proceso Cognitivo" y el área correspondiente.
 - **IMPORTANTE: No inventes leyes, normativas, procedimientos o datos que no estén explícitamente mencionados en el caso o en los principios doctrinales reconocidos de la Policía Nacional. Si no tienes certeza sobre algún punto, indícalo claramente o limítate a lo que proporciona el caso. Evita cualquier alucinación legal o normativa.**
+- **Escape de caracteres especiales**: Todos los caracteres como _, &, %, $, #, {, } que aparezcan en títulos, texto normal o en cualquier lugar fuera de entornos verbatim deben escaparse correctamente (ej. \\_, \\&, \\%, \\$, \\#, \\{, \\}). No uses guiones bajos sin escapar en secciones, párrafos o pies de página.
+- **Llaves balanceadas**: Asegúrate de que todos los grupos delimitados por llaves estén correctamente cerrados. Revisa especialmente las secciones anidadas y los comandos como \\textbf{}, \\textit{}, etc.
+- **Sin código a medias**: No dejes comandos sin sus argumentos obligatorios. El documento debe compilar sin errores en Overleaf.
 - No incluyas ningún comentario o texto fuera del documento LaTeX. Todo el contenido debe estar dentro del entorno LaTeX (de \\documentclass a \\end{document}).
 
 El caso práctico es:
@@ -359,6 +372,8 @@ Genera ahora el informe en LaTeX.`;
 
                 // Limpiar posibles delimitadores de código
                 latexCode = latexCode.replace(/^```latex\s*/i, '').replace(/\s*```$/i, '');
+                // Aplicar sanitización para corregir errores comunes
+                latexCode = sanitizeLatex(latexCode);
 
                 outputContainer.textContent = latexCode;
                 outputContainer.style.display = 'block';
