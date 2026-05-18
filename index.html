@@ -335,6 +335,7 @@ El informe debe:
 - **Llaves balanceadas**: Asegúrate de que todos los grupos delimitados por llaves estén correctamente cerrados. Revisa especialmente las secciones anidadas y los comandos como \\textbf{}, \\textit{}, etc.
 - **Sin código a medias**: No dejes comandos sin sus argumentos obligatorios. El documento debe compilar sin errores en Overleaf.
 - No incluyas ningún comentario o texto fuera del documento LaTeX. Todo el contenido debe estar dentro del entorno LaTeX (de \\documentclass a \\end{document}).
+- Sé conciso pero cubre todos los puntos. Evita repeticiones innecesarias.
 
 El caso práctico es:
 ${caso}
@@ -358,7 +359,7 @@ Genera ahora el informe en LaTeX.`;
                             { role: 'user', content: 'Por favor genera el informe LaTeX.' }
                         ],
                         temperature: 0.3,
-                        max_tokens: 4096
+                        max_tokens: 8000
                     })
                 });
 
